@@ -10,11 +10,76 @@
 }
 
 .input { 
-  margin: 5em auto;
+  margin: 5em auto 0;
   font-size: 20pt;
 }
 
 .display {
+  height: 0;
   margin: 30px auto;
-  font-size: 48pt;
+  font-size: 64pt;
 }
+
+.textbox {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.textbox:focus,
+.textbox:active {
+  outline: none;
+}
+
+.correct {
+  border: 1px solid rgba(51, 255, 0, 0.5);
+  box-shadow: inset 0px 0px 10px 0px rgba(51, 255, 0, 0.5), 0px 0px 10px 0px rgba(51, 255, 0, 0.5);
+  transition: box-shadow .1s linear;
+}
+
+.incorrect {
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  box-shadow: inset 0px 0px 10px 0px rgba(255, 0, 0, 0.5), 0px 0px 10px 0px rgba(255, 0, 0, 0.5);
+  transition: box-shadow .1s linear;
+}
+
+.score {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14pt;
+}
+
+.backdrop {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: rgba(0,0,0,.7);
+}
+
+.modal-content {
+  position: relative;
+  text-align: center;
+  margin: 0 auto;
+  top: 100px;
+  width: 50%;
+  padding: 1em;
+}
+
+.modal-content > h1 {
+  margin: 0;
+}
+
+.modal-content > p {
+  text-align: justify;
+  line-height: 16px;
+  margin: 0 1em 1em;
+}
+
+.btn-large {
+  font-size: 32pt;
+  line-height: 32pt;
+  height: 60px;
+  width: 140px;
+}
+
+.nav, .pagination, .carousel a { cursor: pointer; }
