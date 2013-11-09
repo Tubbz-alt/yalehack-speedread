@@ -1,0 +1,20 @@
+.container { 
+  text-align: center;
+  margin: 100px auto;
+}
+
+.start {
+  margin: 0 auto;
+  font-size: 32pt;
+  padding: .5em 2em;
+}
+
+.input { 
+  margin: 5em auto;
+  font-size: 20pt;
+}
+
+.display {
+  margin: 30px auto;
+  font-size: 48pt;
+}
