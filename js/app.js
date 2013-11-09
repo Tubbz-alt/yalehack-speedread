@@ -2,7 +2,7 @@
  *
  */
 
-var app = angular.module('speedreadapp', ['ui.bootstrap']);
+var app = angular.module('speedreadapp', ['ui.bootstrap', 'LocalStorageModule']);
 
 app.service("userSrv", function() {
 
@@ -18,11 +18,11 @@ app.service("userSrv", function() {
       if (streak >= step)
         step = step * 1.61803398875;
     },
-    calculateComplexity: function() {
-      complexity = 2;
+    setComplexity: function(value) {
+      complexity = value;
     },
     calculateLength: function() {
-      length = length + Math.floor(streak / step);
+      length = Math.floor(streak / step) + length;
       if (length < 3) length = 3;
     },
 
@@ -38,6 +38,7 @@ app.service("userSrv", function() {
 
     reset: function() {
       streak = 0;
+      step = 3;
     },
 
     decrement: function() {
@@ -58,34 +59,113 @@ app.service("userSrv", function() {
 
     gettime: function() {
       return time;
+    },
+
+    getstep: function() {
+      return step;
+    },
+
+    set: function(newstreak, newcomplexity, newlength, newtime, newstep) {
+      streak = newstreak;
+      complexity = newcomplexity;
+      length = newlength;
+      time = newtime;
+      step = newstep;
     }
 
   };
 
 });
 
-app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', function($scope, $timeout, user) {
+app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', function($scope, $timeout, user, local) {
 
   $scope.chars = [
     '1234567890',
     '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*+-=,.?/',
+    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
   ];
 
   $scope.showmodal = true;
+  $scope.showsettings = false;
   $scope.showimage = false;
   $scope.showinput = false;
   $scope.text = "";
   $scope.validation = "";
   $scope.lastcorrect = false;
+
+
+  $scope.savedata = function() {
+    if (local.isSupported) {
+      local.add('streak',user.getstreak());
+      local.add('complexity',user.getcomplexity());
+      local.add('length',user.getlength());
+      local.add('time',user.gettime());
+      local.add('step',user.getstep());
+    } else { 
+      local.cookie.add('streak',user.getstreak());
+      local.cookie.add('complexity',user.getcomplexity());
+      local.cookie.add('length',user.getlength());
+      local.cookie.add('time',user.gettime());
+      local.cookie.add('step',user.getstep());
+    }
+  };
+
+  $scope.loaddata = function() {
+    if (local.isSupported) {
+      user.set(local.get("streak"), 
+               local.get("complexity"), 
+               local.get("length"),
+               local.get("time"),
+               local.get("step"));
+    } else {
+      user.set(local.cookie.get("streak"), 
+               local.cookie.get("complexity"), 
+               local.cookie.get("length"),
+               local.cookie.get("time"),
+               local.cookie.get("step"));
+    }
+  };
+
+  $scope.isfirsttime = function() {
+    if (local.isSupported) return local.get("new") == null;
+    else return local.cookie.get("new") == null;
+  };
+
+  $scope.visited = function() {
+    if (local.isSupported) local.add("new");
+    else local.cookie.add("new");
+  }
   
+  $scope.init = function() {
+    if (!$scope.isfirsttime)  {
+      $scope.loaddata();
+      $scope.showmodal = false;
+      $scope.showsettings = true;
+    }
+
+    $scope.visited();
+  };
+
+  $scope.init();
 
   $scope.gettext = function() {
     return $scope.text;
   };
 
-  $scope.start = function() {
+  $scope.about = function() {
+    $scope.showinput = false;
+    $scope.showsettings = false;
+    $scope.showmodal = true;
+  };
+
+  $scope.settings = function() {
     $scope.showmodal = false;
+    $scope.showsettings = true;
+  };
+
+  $scope.start = function(value) {
+    $scope.showsettings = false;
+    user.setComplexity(value);
     wait = $timeout(function() {
       $scope.show($scope.generate(user.getlength(), user.getcomplexity()), user.gettime());
     }, 2000);
@@ -94,9 +174,9 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', function($scope, $t
 
   /* complexity = 0, 1, or 2 */
   $scope.generate = function() {
-    user.calculateComplexity();
     user.calculateLength();
     user.calculateTime();
+    $scope.savedata();
     var randomstring = "";
     for (var i = user.getlength(); i > 0; --i) 
       randomstring += $scope.chars[user.getcomplexity()][Math.round(Math.random() * ($scope.chars[user.getcomplexity()].length - 1))];
@@ -115,6 +195,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', function($scope, $t
       hide = $timeout(function() {
         $scope.showimage = false;
         $scope.showinput = true;
+        $(".textbox").focus();
       }, howlong);
     }, 500);
 
@@ -161,12 +242,31 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', function($scope, $t
   $scope.time = function() {
     return user.gettime();
   };
+
 }]);
 
-app.directive('modal', function() {
+function DropdownCtrl($scope) {
+  $scope.items = [
+    "A work in progress..."
+  ];
+}
+
+app.directive('about', function() {
     var definition = {
         priority: 1,
         templateUrl: 'about.html',
+        replace: true,
+        transclude: false,
+        restrict: 'EAC',
+        scope: false,
+    };
+    return definition;
+});
+
+app.directive('settings', function() {
+    var definition = {
+        priority: 1,
+        templateUrl: 'settings.html',
         replace: true,
         transclude: false,
         restrict: 'EAC',
