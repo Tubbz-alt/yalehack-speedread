@@ -19,8 +19,14 @@ app.service("userSrv", function() {
   return {
 
     calculateLevel: function() {
-      if (streak >= stepup) level++;
-      if (streak <= stepdown) level--;
+      if (streak >= stepup) {
+        level++;
+        streak = 0;
+      }
+      if (streak <= stepdown) {}
+        level--;
+        streak = 0;
+      }
       if (level < 0) level = 0;
     },
 
