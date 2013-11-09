@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <title>SpeedReading</title>
     <meta name="description" content="Y-Hack Speed Reading App">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
 
+    <link href='//fonts.googleapis.com/css?family=Noto+Sans:700|Ubuntu:700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css" />
 
@@ -18,11 +20,20 @@
   <div class="about"></div>
   <div class="settings"></div>
   <div class="score">
-    <span>Streak: <span class="{{{true: 'red', false: 'green'}[streak() < 0]}}">{{streak()}}</span> <span class="glyphicon glyphicon-flash"></span></span>
-    <span>Complexity: {{complexity()}} <span class="glyphicon glyphicon-flash"></span></span>
-    <span>Length: {{length()}} <span class="glyphicon glyphicon-flash"></span></span>
-    <span>Time: {{time() / 1000}}s</span>
-    <a ng-click="about()">About</a>
+    <div ng-cloak class="less" ng-click="togglescore()" slide show="whichscore()">
+      <span>Streak: <span class="{{{true: 'red', false: 'green'}[streak() < 0]}}">{{streak()}}</span></span>
+      <span class="glyphicon glyphicon-flash"></span>
+      <span>Level: {{level()}}</span>
+    </div>
+    <div ng-cloak class="more" ng-click="togglescore()" slide show="!whichscore()">
+      <span>Length: {{length()}} </span>
+      <span class="glyphicon glyphicon-flash"></span>
+      <span>Time: {{time() / 1000}}s </span>
+    </div>
+    <div class="menu">
+      <a ng-click="settings()" class="glyphicon glyphicon-cog"></a>
+      <a ng-click="about()">About</a>
+    </div>
   </div>
   <div class="container">
     <div ng-show="showimage" class="display">

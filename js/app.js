@@ -92,6 +92,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   $scope.text = "";
   $scope.validation = "";
   $scope.lastcorrect = false;
+  $scope.showscore = true;
 
 
   $scope.savedata = function() {
@@ -132,12 +133,12 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   };
 
   $scope.visited = function() {
-    if (local.isSupported) local.add("new");
-    else local.cookie.add("new");
+    if (local.isSupported) local.add("new", false);
+    else local.cookie.add("new", false);
   }
   
   $scope.init = function() {
-    if (!$scope.isfirsttime)  {
+    if (!$scope.isfirsttime())  {
       $scope.loaddata();
       $scope.showmodal = false;
       $scope.showsettings = true;
@@ -243,6 +244,14 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     return user.gettime();
   };
 
+  $scope.whichscore = function() {
+    return $scope.showscore;
+  };
+
+  $scope.togglescore = function() {
+    $scope.showscore = !$scope.showscore;
+  };
+
 }]);
 
 function DropdownCtrl($scope) {
@@ -284,6 +293,21 @@ app.directive('slideDown', function() {
                     $(element).fadeIn(200);
                 } else {
                     $(element).fadeOut(200);
+                }
+            });
+        }
+    };
+});
+
+app.directive('slide', function() {
+    return {
+        restrict: 'A',
+	    link: function($scope, element, attrs) {
+            $scope.$watch(attrs.show, function(value) {
+                if (value) {
+                  $(element).slideDown();
+                } else {
+                  $(element).slideUp();
                 }
             });
         }

@@ -17,6 +17,7 @@
 .display {
   height: 0;
   margin: 30px auto;
+  font-family: 'Noto Sans', 'Helvetica Neue', 'Arial', sans-serif;
   font-size: 64pt;
 }
 
@@ -49,9 +50,10 @@
   font-size: 12pt;
 }
 
-.score > a {
+.menu {
   position: absolute;
   right: 1em;
+  top: 0;
 }
 
 .red {
@@ -67,6 +69,7 @@
   height: 100%;
   width: 100%;
   background: rgba(0,0,0,.7);
+  z-index: 1;
 }
 
 .modal-content {
@@ -77,27 +80,33 @@
   width: 50%;
   padding: 1em;
   min-width: 315px;
+  z-index: 2
 }
 
 .modal-content > h1 {
   margin: 0;
 }
 
-.modal-content > p {
+.modal-content > div {
+  margin: 1em auto 0;
+  max-width: 315px;
+}
+
+.modal-content > div > p {
   text-align: justify;
   line-height: 16px;
   margin: 0 1em 1em;
 }
 
 #difficulty {
-  width: 30%;
+  max-width: 400px;
 }
 
 .btn-large {
   font-size: 32pt;
-  line-height: 32pt;
-  height: 60px;
-  width: 140px;
+  line-height: 20pt;
+  height: 48px;
+  width: 190px;
 }
 
 .btn-difficulty {
@@ -111,33 +120,31 @@
   margin: 3em 0;
 }
 
-.glyphicon-cog {
-  right: 44%;
-  font-size: 18pt;
-}
-
 .nav, .pagination, .carousel a { cursor: pointer; }
 
-@media screen and (max-width: 320px) {
-  .score {
-    font-size: 10px;
-  }
-  .score > a {
-    bottom: 1em;
-  }
-  .modal-content {
-    top: 10px;
-  }
-}
-
-@media screen and (max-width: 480px) {
+@media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
   .score {
     font-size: 12px;
   }
-  .score > a {
-    bottom: 1em;
-  }
   .modal-content {
-    top: 10px;
+    top: 12px;
   }
 }
+
+@media only screen and (max-width: 320px), only screen and (max-device-width: 320px) {
+  .score {
+    font-size: 12px;
+  }
+  .textbox {
+    width: 238px;
+  }
+  .btn-difficulty {
+    font-size: 12pt;
+  }
+  .modal-content {
+    top: 12px;
+    min-width: 280px;
+  }
+}
+
+

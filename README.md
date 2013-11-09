@@ -1,2 +1,0 @@
-yalehack-speedread
-==================
