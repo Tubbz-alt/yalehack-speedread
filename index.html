@@ -8,20 +8,28 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css" />
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
-    <script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
+    <script src="js/ui-bootstrap-custom-0.6.0.min.js"></script>
     <script src="js/app.js"></script>
 </head>
 <body ng-controller="MainCtrl">
+  <div class="modal"></div>
+  <div class="score">
+    <span>Streak: {{streak()}} |</span>
+    <span>Complexity: {{complexity()}} |</span>
+    <span>Length: {{length()}} |</span>
+    <span>Time: {{time() / 1000}}s</span>
+  </div>
   <div class="container">
-    <button ng-hide="started" ng-click="start()" class="btn btn-large start">Start!</button>
-    
     <div ng-show="showimage" class="display">
       <strong>{{gettext()}}</strong>
     </div>
 
     <div ng-show="showinput" class="input">
-      <form name="answerform" ng-submit="submit(answer)" ><input class="{{checkanswer()}}" type="text" name="answer" ng-model="answer" /></form>
+      <form name="answerform" ng-submit="submit(answer)" >
+      <input class="{{checkanswer()}} textbox" type="text" name="answer" ng-model="answer" />
+      </form>
     </div>
   </div>
 </body>
