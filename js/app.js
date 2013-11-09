@@ -6,29 +6,35 @@ var app = angular.module('speedreadapp', ['ui.bootstrap', 'LocalStorageModule'])
 
 app.service("userSrv", function() {
 
+  var mode = 0;
+  var minlength = 3;
+  var length = minlength;
   var streak = 0;
-  var complexity = 0;
-  var length = 3;
-  var time = 500;
-  var step = 3;
+  var mintime = 100;
+  var time = mintime;
+  var stepup = 15;
+  var stepdown = -4;
+  var level = 0;
 
   return {
 
-    calculateStep: function() {
-      if (streak >= step)
-        step = step * 1.61803398875;
+    calculateLevel: function() {
+      if (streak >= stepup) level++;
+      if (streak <= stepdown) level--;
+      if (level < 0) level = 0;
     },
-    setComplexity: function(value) {
-      complexity = value;
+
+    setMode: function(value) {
+      mode = value;
     },
+
     calculateLength: function() {
-      length = Math.floor(streak / step) + length;
-      if (length < 3) length = 3;
+      length = minlength + level;
+      if (length > 9) length = 9;
     },
 
     calculateTime: function() {
-      time = time - (streak * 10)  
-      if (time > 1000) time = 1000;
+      time = mintime - (20 * level)  
       if (time < 10) time = 10;
     },
 
@@ -38,19 +44,22 @@ app.service("userSrv", function() {
 
     reset: function() {
       streak = 0;
-      step = 3;
     },
 
     decrement: function() {
       streak--;
     },
 
+    getlevel: function() {
+      return level;
+    },
+
     getstreak: function() {
       return streak;
     },
 
-    getcomplexity: function() {
-      return complexity;
+    getmode: function() {
+      return mode;
     },
 
     getlength: function() {
@@ -61,16 +70,11 @@ app.service("userSrv", function() {
       return time;
     },
 
-    getstep: function() {
-      return step;
-    },
-
-    set: function(newstreak, newcomplexity, newlength, newtime, newstep) {
+    set: function(newstreak, newmode, newlength, newtime) {
       streak = newstreak;
-      complexity = newcomplexity;
+      mode = newmode;
       length = newlength;
       time = newtime;
-      step = newstep;
     }
 
   };
@@ -81,8 +85,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
   $scope.chars = [
     '1234567890',
-    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+    'abcdefghijklmnopqrstuvwxyz',
+    '1234567890abcdefghijklmnopqrstuvwxyz',
   ];
 
   $scope.showmodal = true;
@@ -96,45 +100,24 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
   $scope.savedata = function() {
     if (local.isSupported) {
-      local.add('streak',user.getstreak());
-      local.add('complexity',user.getcomplexity());
-      local.add('length',user.getlength());
-      local.add('time',user.gettime());
-      local.add('step',user.getstep());
+      local.add('level',user.getlevel());
     } else { 
-      local.cookie.add('streak',user.getstreak());
-      local.cookie.add('complexity',user.getcomplexity());
-      local.cookie.add('length',user.getlength());
-      local.cookie.add('time',user.gettime());
-      local.cookie.add('step',user.getstep());
+      local.cookie.add('level',user.getlevel());
     }
   };
 
   $scope.loaddata = function() {
     if (local.isSupported) {
-      user.set(local.get("streak"), 
-               local.get("complexity"), 
-               local.get("length"),
-               local.get("time"),
-               local.get("step"));
+      user.set(local.get("level"));
     } else {
-      user.set(local.cookie.get("streak"), 
-               local.cookie.get("complexity"), 
-               local.cookie.get("length"),
-               local.cookie.get("time"),
-               local.cookie.get("step"));
+      user.set(local.cookie.get("level"));
     }
   };
 
   $scope.isfirsttime = function() {
-    if (local.isSupported) return local.get("new") == null;
-    else return local.cookie.get("new") == null;
+    if (local.isSupported) return local.get("level") == null;
+    else return local.cookie.get("level") == null;
   };
-
-  $scope.visited = function() {
-    if (local.isSupported) local.add("new");
-    else local.cookie.add("new");
-  }
   
   $scope.init = function() {
     if (!$scope.isfirsttime)  {
@@ -142,8 +125,6 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
       $scope.showmodal = false;
       $scope.showsettings = true;
     }
-
-    $scope.visited();
   };
 
   $scope.init();
@@ -165,21 +146,22 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
   $scope.start = function(value) {
     $scope.showsettings = false;
-    user.setComplexity(value);
+    user.setMode(value);
     wait = $timeout(function() {
-      $scope.show($scope.generate(user.getlength(), user.getcomplexity()), user.gettime());
+      $scope.show($scope.generate(user.getlength(), user.getmode()), user.gettime());
     }, 2000);
   };
 
 
-  /* complexity = 0, 1, or 2 */
+  /* mode = 0, 1, or 2 */
   $scope.generate = function() {
+    user.calculateLevel();
     user.calculateLength();
     user.calculateTime();
     $scope.savedata();
     var randomstring = "";
     for (var i = user.getlength(); i > 0; --i) 
-      randomstring += $scope.chars[user.getcomplexity()][Math.round(Math.random() * ($scope.chars[user.getcomplexity()].length - 1))];
+      randomstring += $scope.chars[user.getmode()][Math.round(Math.random() * ($scope.chars[user.getmode()].length - 1))];
       
       console.log(randomstring);
       return randomstring;
@@ -223,7 +205,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
       $scope.showinput = false;
       $scope.answer = "";
       $scope.validation = "";
-      $scope.show($scope.generate(user.getlength(), user.getcomplexity()), user.gettime());
+      $scope.show($scope.generate(user.getlength(), user.getmode()), user.gettime());
     }, 500);
   };
 
@@ -235,8 +217,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     return user.getlength();
   };
 
-  $scope.complexity = function() {
-    return user.getcomplexity();
+  $scope.mode = function() {
+    return user.getmode();
   };
 
   $scope.time = function() {

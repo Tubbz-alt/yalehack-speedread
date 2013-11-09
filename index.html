@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css" />
+    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700' rel='stylesheet' type='text/css'>
 
     <script src="js/jquery-1.10.2.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
@@ -19,7 +20,7 @@
   <div class="settings"></div>
   <div class="score">
     <span>Streak: <span class="{{{true: 'red', false: 'green'}[streak() < 0]}}">{{streak()}}</span> <span class="glyphicon glyphicon-flash"></span></span>
-    <span>Complexity: {{complexity()}} <span class="glyphicon glyphicon-flash"></span></span>
+    <span>Mode: {{mode()}} <span class="glyphicon glyphicon-flash"></span></span>
     <span>Length: {{length()}} <span class="glyphicon glyphicon-flash"></span></span>
     <span>Time: {{time() / 1000}}s</span>
     <a ng-click="about()">About</a>
@@ -36,3 +37,4 @@
     </div>
   </div>
 </body>
+</html>
