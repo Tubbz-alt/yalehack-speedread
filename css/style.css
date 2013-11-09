@@ -120,6 +120,12 @@
   margin: 3em 0;
 }
 
+.close {
+  position: absolute;
+  top: 0;
+  right: 6px;
+}
+
 .nav, .pagination, .carousel a { cursor: pointer; }
 
 @media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {

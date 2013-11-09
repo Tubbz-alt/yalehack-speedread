@@ -6,26 +6,27 @@ var app = angular.module('speedreadapp', ['ui.bootstrap', 'LocalStorageModule'])
 
 app.service("userSrv", function() {
 
-  var mode = 0;
+  var mode = -1; // Check if mode has been set once before
   var minlength = 3;
   var length = minlength;
   var streak = 0;
+  var hiddenstreak = 0;
   var mintime = 100;
   var time = mintime;
-  var stepup = 15;
+  var stepup = 12;
   var stepdown = -4;
   var level = 0;
 
   return {
 
     calculateLevel: function() {
-      if (streak >= stepup) {
+      if (hiddenstreak >= stepup) {
         level++;
-        streak = 0;
+        hiddenstreak = 0;
       }
-      if (streak <= stepdown) {}
+      if (hiddenstreak <= stepdown) {
         level--;
-        streak = 0;
+        hiddenstreak = 0;
       }
       if (level < 0) level = 0;
     },
@@ -46,14 +47,17 @@ app.service("userSrv", function() {
 
     increment: function() {
       streak++;
+      hiddenstreak++;
     },
 
     reset: function() {
       streak = 0;
+      hiddenstreak = 0;
     },
 
+    /* Let's not have the visible streak go below 0 */
     decrement: function() {
-      streak--;
+      hiddenstreak--;
     },
 
     getlevel: function() {
@@ -76,11 +80,8 @@ app.service("userSrv", function() {
       return time;
     },
 
-    set: function(newstreak, newmode, newlength, newtime) {
-      streak = newstreak;
-      mode = newmode;
-      length = newlength;
-      time = newtime;
+    setlevel: function(newlevel) {
+      level = newlevel;
     }
 
   };
@@ -91,8 +92,8 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
   $scope.chars = [
     '1234567890',
-    'abcdefghijklmnopqrstuvwxyz',
-    '1234567890abcdefghijklmnopqrstuvwxyz',
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   ];
 
   $scope.showmodal = true;
@@ -106,19 +107,17 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
 
   $scope.savedata = function() {
-    if (local.isSupported) {
+    if (local.isSupported) 
       local.add('level',user.getlevel());
-    } else { 
+    else 
       local.cookie.add('level',user.getlevel());
-    }
   };
 
   $scope.loaddata = function() {
-    if (local.isSupported) {
-      user.set(local.get("level"));
-    } else {
-      user.set(local.cookie.get("level"));
-    }
+    if (local.isSupported)
+      user.setlevel(local.get("level"));
+    else
+      user.setlevel(local.cookie.get("level"));
   };
 
   $scope.isfirsttime = function() {
@@ -132,6 +131,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
       $scope.showmodal = false;
       $scope.showsettings = true;
     }
+    user.setlevel(0);
   };
 
   $scope.init();
@@ -151,7 +151,13 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     $scope.showsettings = true;
   };
 
+  $scope.close = function() {
+    $scope.showmodal = false;
+    $scope.showsettings = false;
+  };
+
   $scope.start = function(value) {
+    $scope.showinput = false;
     $scope.showsettings = false;
     user.setMode(value);
     wait = $timeout(function() {
@@ -230,6 +236,10 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
 
   $scope.time = function() {
     return user.gettime();
+  };
+
+  $scope.level = function() {
+    return user.getlevel();
   };
 
   $scope.whichscore = function() {
