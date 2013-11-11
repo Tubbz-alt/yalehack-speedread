@@ -48,6 +48,7 @@
   text-align: center;
   font-weight: bold;
   font-size: 12pt;
+  cursor: pointer;
 }
 
 .menu {
@@ -127,7 +128,7 @@
   right: 6px;
 }
 
-.nav, .pagination, .carousel a { cursor: pointer; }
+.nav, .pagination, .carousel, a { cursor: pointer; }
 
 @media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
   .score {

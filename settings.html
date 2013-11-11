@@ -1,4 +1,4 @@
-<div slide-down show="showsettings" >
+<div slide-down show="show(views.settings)" >
   <div class="backdrop">
     <div class="modal-content" id="difficulty">
       <h3>Choose Game Mode</h3>
@@ -7,7 +7,12 @@
         <button class="btn btn-info btn-difficulty" ng-click="start(1)" >Give me letters.</button>
         <button class="btn btn-info btn-difficulty" ng-click="start(2)" >Give me both.</button>
       </div>
-      <span class="close" ng-click="close()">&times</span>
+      <div ng-show="hasdata()">
+        <div>Highest streak: {{higheststreak()}} Highest level: {{highestlevel()}}</div>
+        <a ng-click="changeview(views.confirm)">Reset my scores.</a>
+      </div>
+      <span ng-hide="hasdata()">You have no scores to show.</span>
+      <span class="close" ng-click="changeview(views.none)">&times</span>
     </div>
   </div>
 </div>

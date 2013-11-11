@@ -1,0 +1,12 @@
+<div slide-down show="show(views.confirm)" >
+  <div class="backdrop">
+    <div class="modal-content">
+      <h3>Are you sure</h3>
+        <p>You want to delete all of your data?</p>
+        <button class="btn btn-primary" ng-click="changeview(views.settings)" >No</button>
+        <button class="btn btn-warning" ng-click="reset(); changeview(views.settings)" >Yes</button>
+      <span class="close" ng-click="changeview(views.none)">&times</span>
+    </div>
+  </div>
+</div>
+
