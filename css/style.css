@@ -3,6 +3,14 @@
   margin: 100px auto;
 }
 
+.blanket {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: white;
+  z-index: 3;
+}
+
 .start {
   margin: 0 auto;
   font-size: 32pt;
@@ -78,7 +86,6 @@
   text-align: center;
   margin: 0 auto;
   top: 100px;
-  width: 50%;
   padding: 1em;
   max-width: 400px;
   min-width: 315px;

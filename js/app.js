@@ -14,8 +14,8 @@ app.service("userSrv", function() {
   var higheststreak = 0;
   var mintime = 100;
   var time = mintime;
-  var stepup = 5;
-  var stepdown = -2;
+  var stepup = 12;
+  var stepdown = -4;
   var level = 0;
   var highestlevel = 0;
 
@@ -131,6 +131,7 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     more: 'more'
   }
 
+  $scope.blanket = false; // Blanket all elements to hide 'flicker' until load
   $scope.view = $scope.views.settings; // Available values are 'about', 'settings', 'input', 'text', 'confirm', or 'none'
   $scope.score = $scope.scores.simple; // Available values are 'simple', 'more'
 
@@ -205,6 +206,10 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   };
 
   $scope.init(); // Initialize the app
+
+  $scope.hideblanket = function() {
+    
+  };
 
   $scope.gettext = function() {
     return $scope.text;
