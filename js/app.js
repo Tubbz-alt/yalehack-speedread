@@ -11,11 +11,13 @@ app.service("userSrv", function() {
   var length = minlength;
   var streak = 0;
   var hiddenstreak = 0;
+  var higheststreak = 0;
   var mintime = 100;
   var time = mintime;
   var stepup = 12;
   var stepdown = -4;
   var level = 0;
+  var highestlevel = 0;
 
   return {
 
@@ -36,7 +38,7 @@ app.service("userSrv", function() {
     },
 
     calculateLength: function() {
-      length = minlength + level;
+      length = minlength + parseInt(level);
       if (length > 9) length = 9;
     },
 
@@ -80,12 +82,32 @@ app.service("userSrv", function() {
       return time;
     },
 
+    gethighestlevel: function() {
+      return highestlevel;
+    },
+
+    gethigheststreak: function() {
+      return higheststreak;
+    },
+
     setlevel: function(newlevel) {
       level = newlevel;
+    },
+
+    sethighestlevel: function(newlevel) {
+      highestlevel = newlevel;
+    },
+
+    sethigheststreak: function(streak) {
+      higheststreak = streak;
+    },
+
+    cleardata: function() {
+      level = 0;
+      highestlevel = 0;
+      higheststreak = 0;
     }
-
   };
-
 });
 
 app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', function($scope, $timeout, user, local) {
@@ -96,134 +118,30 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   ];
 
-  $scope.showmodal = true;
-  $scope.showsettings = false;
-  $scope.showimage = false;
-  $scope.showinput = false;
-  $scope.text = "";
-  $scope.validation = "";
-  $scope.lastcorrect = false;
-  $scope.showscore = true;
+  $scope.views = {
+    about: 'about',
+    settings: 'settings',
+    input: 'input',
+    text: 'text',
+    confirm: 'confirm',
+    none: 'none'
+  }
+  $scope.scores = {
+    simple: 'simple',
+    more: 'more'
+  }
 
+  $scope.blanket = false; // Blanket all elements to hide 'flicker' until load
+  $scope.view = $scope.views.settings; // Available values are 'about', 'settings', 'input', 'text', 'confirm', or 'none'
+  $scope.score = $scope.scores.simple; // Available values are 'simple', 'more'
 
-  $scope.savedata = function() {
-    if (local.isSupported) 
-      local.add('level',user.getlevel());
-    else 
-      local.cookie.add('level',user.getlevel());
-  };
-
-  $scope.loaddata = function() {
-    if (local.isSupported)
-      user.setlevel(local.get("level"));
-    else
-      user.setlevel(local.cookie.get("level"));
-  };
-
-  $scope.isfirsttime = function() {
-    if (local.isSupported) return local.get("level") == null;
-    else return local.cookie.get("level") == null;
-  };
-  
-  $scope.init = function() {
-    if (!$scope.isfirsttime())  {
-      $scope.loaddata();
-      $scope.showmodal = false;
-      $scope.showsettings = true;
-    }
-    user.setlevel(0);
-  };
-
-  $scope.init();
-
-  $scope.gettext = function() {
-    return $scope.text;
-  };
-
-  $scope.about = function() {
-    $scope.showinput = false;
-    $scope.showsettings = false;
-    $scope.showmodal = true;
-  };
-
-  $scope.settings = function() {
-    $scope.showmodal = false;
-    $scope.showsettings = true;
-  };
-
-  $scope.close = function() {
-    $scope.showmodal = false;
-    $scope.showsettings = false;
-  };
-
-  $scope.start = function(value) {
-    $scope.showinput = false;
-    $scope.showsettings = false;
-    user.setMode(value);
-    wait = $timeout(function() {
-      $scope.show($scope.generate(user.getlength(), user.getmode()), user.gettime());
-    }, 2000);
-  };
-
-
-  /* mode = 0, 1, or 2 */
-  $scope.generate = function() {
-    user.calculateLevel();
-    user.calculateLength();
-    user.calculateTime();
-    $scope.savedata();
-    var randomstring = "";
-    for (var i = user.getlength(); i > 0; --i) 
-      randomstring += $scope.chars[user.getmode()][Math.round(Math.random() * ($scope.chars[user.getmode()].length - 1))];
-      
-      console.log(randomstring);
-      return randomstring;
-  };
-
-  $scope.show = function(whattext, howlong) {
-    wait = $timeout(function() { /* wait */ 
-      $scope.showinput = false;
-      $scope.text = whattext;
-      $scope.showimage = true;
-    
-      /* Hide after howlong */
-      hide = $timeout(function() {
-        $scope.showimage = false;
-        $scope.showinput = true;
-        $(".textbox").focus();
-      }, howlong);
-    }, 500);
-
-  };
-
-  $scope.checkanswer = function() {
-    return $scope.validation;
-  };
-
-  $scope.submit = function(input) {
-
-    if ($scope.text == input) {
-      if (!$scope.lastcorrect) user.reset();
-      $scope.lastcorrect = true;
-      user.increment();
-      $scope.validation = "correct";
-    } else {
-      if ($scope.lastcorrect) user.reset();
-      $scope.lastcorrect = false;
-      user.decrement();
-      $scope.validation = "incorrect";
-    }
-
-    wait = $timeout(function() {
-      $scope.showinput = false;
-      $scope.answer = "";
-      $scope.validation = "";
-      $scope.show($scope.generate(user.getlength(), user.getmode()), user.gettime());
-    }, 500);
-  };
-
+  /* Getters */
   $scope.streak = function() {
     return user.getstreak();
+  };
+
+  $scope.higheststreak = function() {
+    return user.gethigheststreak();
   };
 
   $scope.length = function() {
@@ -241,27 +159,171 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   $scope.level = function() {
     return user.getlevel();
   };
+  
+  $scope.highestlevel = function() {
+    return user.gethighestlevel();
+  };
 
-  $scope.whichscore = function() {
-    return $scope.showscore;
+  $scope.save = function(key, value) {
+    if (local.isSupported) local.add(key, value);
+    else local.cookie.add(key, value);
+  };
+
+  $scope.load = function(key) {
+    if (local.isSupported) return local.get(key);
+    else return local.cookie.get(key);
+  };
+
+  $scope.savedata = function() {
+    $scope.save('level', $scope.level());
+
+    if ($scope.higheststreak() == 0 || $scope.higheststreak() < $scope.streak()) {
+      user.sethigheststreak($scope.streak());
+      $scope.save('higheststreak', $scope.streak());
+    }
+    if ($scope.highestlevel() == 0 || $scope.highestlevel() < $scope.level()) {
+      user.sethighestlevel($scope.level());
+      $scope.save('highestlevel', $scope.level());
+    }
+  };
+
+  $scope.loaddata = function() {
+    user.setlevel($scope.load('level'));
+    user.sethigheststreak($scope.load('higheststreak'));
+    user.sethighestlevel($scope.load('highestlevel'));
+  };
+
+  $scope.hasdata = function() {
+    return $scope.load('level') !== null;
+  };
+  
+  $scope.init = function() {
+    if (!$scope.hasdata())  {
+      $scope.view = $scope.views.about;
+      $scope.savedata();
+    }
+    $scope.loaddata();
+  };
+
+  $scope.init(); // Initialize the app
+
+  $scope.hideblanket = function() {
+    
+  };
+
+  $scope.gettext = function() {
+    return $scope.text;
+  };
+
+  $scope.changeview = function(newview) {
+    $scope.view = newview;
+  };
+
+  $scope.show = function(view) {
+    return $scope.view == view;
+  };
+
+  $scope.start = function(value) {
+    $scope.view = $scope.views.none;
+    user.setMode(value);
+    wait = $timeout(function() {
+      if ($scope.hasdata()) { 
+        $scope.flash($scope.generate(user.getlength(), user.getmode()), user.gettime());
+      } else {
+        $scope.flash($scope.generate(user.getlength(), user.getmode()), 500);
+      }
+    }, 2000);
+  };
+
+  /* mode = 0, 1, or 2 */
+  $scope.generate = function() {
+    user.calculateLevel();
+    user.calculateLength();
+    user.calculateTime();
+    $scope.savedata();
+    var randomstring = "";
+    for (var i = user.getlength(); i > 0; --i) 
+      randomstring += $scope.chars[user.getmode()][Math.round(Math.random() * ($scope.chars[user.getmode()].length - 1))];
+      return randomstring;
+  };
+
+  $scope.flash = function(whattext, howlong) {
+    wait = $timeout(function() { /* wait */ 
+      $scope.text = whattext;
+      $scope.view = $scope.views.text;
+    
+      /* Hide after howlong */
+      hide = $timeout(function() {
+        $scope.view = $scope.views.input;
+        $scope.$apply();
+        $(".textbox").focus();
+      }, howlong);
+    }, 500);
+
+  };
+
+  $scope.checkanswer = function() {
+    return $scope.validation;
+  };
+
+  $scope.submit = function(input) {
+
+    if ($scope.text == angular.uppercase(input)) {
+      if (!$scope.lastcorrect) user.reset();
+
+      $scope.lastcorrect = true;
+      user.increment();
+      $scope.validation = "correct";
+    } else {
+      if ($scope.lastcorrect) user.reset();
+
+      $scope.lastcorrect = false;
+      user.decrement();
+      $scope.validation = "incorrect";
+    }
+
+    wait = $timeout(function() {
+      $scope.view = $scope.views.none;
+      $scope.answer = "";
+      $scope.validation = "";
+      $scope.flash($scope.generate(user.getlength(), user.getmode()), user.gettime());
+    }, 500);
+  };
+
+  $scope.reset = function() {
+    local.clearAll();
+    local.cookie.clearAll();
+    user.cleardata();
   };
 
   $scope.togglescore = function() {
-    $scope.showscore = !$scope.showscore;
+    if ($scope.score == $scope.scores.simple)
+      $scope.score = $scope.scores.more;
+    else
+      $scope.score = $scope.scores.simple;
   };
 
+  $scope.display = function(score) {
+    return $scope.score == score;
+  };
 }]);
-
-function DropdownCtrl($scope) {
-  $scope.items = [
-    "A work in progress..."
-  ];
-}
 
 app.directive('about', function() {
     var definition = {
         priority: 1,
         templateUrl: 'about.html',
+        replace: true,
+        transclude: false,
+        restrict: 'EAC',
+        scope: false,
+    };
+    return definition;
+});
+
+app.directive('prompt', function() {
+    var definition = {
+        priority: 1,
+        templateUrl: 'prompt.html',
         replace: true,
         transclude: false,
         restrict: 'EAC',

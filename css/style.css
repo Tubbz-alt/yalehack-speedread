@@ -3,6 +3,14 @@
   margin: 100px auto;
 }
 
+.blanket {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: white;
+  z-index: 3;
+}
+
 .start {
   margin: 0 auto;
   font-size: 32pt;
@@ -48,6 +56,7 @@
   text-align: center;
   font-weight: bold;
   font-size: 12pt;
+  cursor: pointer;
 }
 
 .menu {
@@ -77,7 +86,6 @@
   text-align: center;
   margin: 0 auto;
   top: 100px;
-  width: 50%;
   padding: 1em;
   max-width: 400px;
   min-width: 315px;
@@ -127,7 +135,7 @@
   right: 6px;
 }
 
-.nav, .pagination, .carousel a { cursor: pointer; }
+.nav, .pagination, .carousel, a { cursor: pointer; }
 
 @media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
   .score {
