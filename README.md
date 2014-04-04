@@ -6,6 +6,4 @@ SpeedRead is a tool for improving reading speed by training you out of the habit
 
 Try it out [here](http://rrotaru.github.io/yalehack-speedread).
 
-Try it out [here](http://yhack.rrotaru.com).
-
 Created by Robert Rotaru and Daniel Friedman @ Y-Hack 2013
