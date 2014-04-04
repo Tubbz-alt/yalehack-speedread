@@ -1,10 +1,10 @@
-/*
- *
+/* SpeedReader - A tool for improving reading speed and comprehension
+ * Robert Rotaru & Daniel Friedman, Y-Hack 2013
  */
 
-var app = angular.module('speedreadapp', ['ui.bootstrap', 'LocalStorageModule']);
+angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
 
-app.service("userSrv", function() {
+.service("userSrv", function() {
 
   var mode = -1; // Check if mode has been set once before
   var minlength = 3;
@@ -26,9 +26,13 @@ app.service("userSrv", function() {
         level++;
         hiddenstreak = 0;
       }
-      if (hiddenstreak <= stepdown) {
+      if (hiddenstreak < 0) {
+        if (level > 0) {
+          hiddenstreak = 12 + hiddenstreak;
+        } else {
+          hiddenstreak = 0;
+        }
         level--;
-        hiddenstreak = 0;
       }
       if (level < 0) level = 0;
     },
@@ -47,19 +51,18 @@ app.service("userSrv", function() {
       if (time < 10) time = 10;
     },
 
-    increment: function() {
-      streak++;
-      hiddenstreak++;
-    },
-
-    reset: function() {
-      streak = 0;
-      hiddenstreak = 0;
+    increment: function(val) {
+      streak += val;
+      hiddenstreak += val;
     },
 
     /* Let's not have the visible streak go below 0 */
-    decrement: function() {
-      hiddenstreak--;
+    decrement: function(val) {
+      hiddenstreak -= val;
+    },
+
+    resetstreak: function() {
+      streak = 0;
     },
 
     getlevel: function() {
@@ -90,6 +93,10 @@ app.service("userSrv", function() {
       return higheststreak;
     },
 
+    getprogress: function() {
+      return hiddenstreak / stepup;
+    },
+
     setlevel: function(newlevel) {
       level = newlevel;
     },
@@ -108,15 +115,17 @@ app.service("userSrv", function() {
       higheststreak = 0;
     }
   };
-});
+})
 
-app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', function($scope, $timeout, user, local) {
+.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', function($scope, $timeout, user, local) {
 
   $scope.chars = [
     '1234567890',
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   ];
+
+  $scope.words = words;
 
   $scope.views = {
     about: 'about',
@@ -131,7 +140,6 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     more: 'more'
   }
 
-  $scope.blanket = false; // Blanket all elements to hide 'flicker' until load
   $scope.view = $scope.views.settings; // Available values are 'about', 'settings', 'input', 'text', 'confirm', or 'none'
   $scope.score = $scope.scores.simple; // Available values are 'simple', 'more'
 
@@ -164,6 +172,10 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     return user.gethighestlevel();
   };
 
+  $scope.progress = function() {
+    return user.getprogress() * 100;
+  };
+
   $scope.save = function(key, value) {
     if (local.isSupported) local.add(key, value);
     else local.cookie.add(key, value);
@@ -194,22 +206,20 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   };
 
   $scope.hasdata = function() {
-    return $scope.load('level') !== null;
+    return $scope.load('uuid') !== null;
   };
   
   $scope.init = function() {
+    $scope.loaddata();
     if (!$scope.hasdata())  {
       $scope.view = $scope.views.about;
+      $scope.save('uuid', uuid());
+      user.cleardata();
       $scope.savedata();
     }
-    $scope.loaddata();
   };
 
   $scope.init(); // Initialize the app
-
-  $scope.hideblanket = function() {
-    
-  };
 
   $scope.gettext = function() {
     return $scope.text;
@@ -235,16 +245,20 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
     }, 2000);
   };
 
-  /* mode = 0, 1, or 2 */
+  /* mode = 0, 1, 2, or 3 */
   $scope.generate = function() {
     user.calculateLevel();
     user.calculateLength();
     user.calculateTime();
     $scope.savedata();
     var randomstring = "";
-    for (var i = user.getlength(); i > 0; --i) 
-      randomstring += $scope.chars[user.getmode()][Math.round(Math.random() * ($scope.chars[user.getmode()].length - 1))];
-      return randomstring;
+    if (user.getmode() != 3) {
+        for (var i = user.getlength(); i > 0; --i) 
+          randomstring += $scope.chars[user.getmode()][Math.round(Math.random() * ($scope.chars[user.getmode()].length - 1))];
+    } else {
+        randomstring = $scope.words[user.getlength()][Math.round(Math.random() * ($scope.words[user.getlength()].length - 1))];
+    }
+    return randomstring;
   };
 
   $scope.flash = function(whattext, howlong) {
@@ -256,7 +270,6 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
       hide = $timeout(function() {
         $scope.view = $scope.views.input;
         $scope.$apply();
-        $(".textbox").focus();
       }, howlong);
     }, 500);
 
@@ -269,16 +282,23 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   $scope.submit = function(input) {
 
     if ($scope.text == angular.uppercase(input)) {
-      if (!$scope.lastcorrect) user.reset();
+      /*
+      if (!$scope.lastcorrect) { 
+        user.resetstreak();
+      }*/
 
       $scope.lastcorrect = true;
-      user.increment();
+      user.increment(1);
       $scope.validation = "correct";
     } else {
-      if ($scope.lastcorrect) user.reset();
+      /*
+      if ($scope.lastcorrect) {
+        user.resetstreak();
+      }*/
 
       $scope.lastcorrect = false;
-      user.decrement();
+      user.resetstreak();
+      user.decrement(3);
       $scope.validation = "incorrect";
     }
 
@@ -297,18 +317,15 @@ app.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageServic
   };
 
   $scope.togglescore = function() {
-    if ($scope.score == $scope.scores.simple)
-      $scope.score = $scope.scores.more;
-    else
-      $scope.score = $scope.scores.simple;
+    $scope.score == $scope.scores.simple ? $scope.score = $scope.scores.more : $scope.score = $scope.scores.simple;
   };
 
   $scope.display = function(score) {
     return $scope.score == score;
   };
-}]);
+}])
 
-app.directive('about', function() {
+.directive('about', function() {
     var definition = {
         priority: 1,
         templateUrl: 'about.html',
@@ -318,9 +335,9 @@ app.directive('about', function() {
         scope: false,
     };
     return definition;
-});
+})
 
-app.directive('prompt', function() {
+.directive('prompt', function() {
     var definition = {
         priority: 1,
         templateUrl: 'prompt.html',
@@ -330,9 +347,9 @@ app.directive('prompt', function() {
         scope: false,
     };
     return definition;
-});
+})
 
-app.directive('settings', function() {
+.directive('settings', function() {
     var definition = {
         priority: 1,
         templateUrl: 'settings.html',
@@ -342,39 +359,23 @@ app.directive('settings', function() {
         scope: false,
     };
     return definition;
-});
+})
 
-app.directive('slideDown', function() {
+.directive('setFocus', function () {
     return {
         restrict: 'A',
-	    link: function($scope, element, attrs) {
-            $scope.$watch(attrs.show, function(value) {
-                if (value) {
-                    $(element).fadeIn(200);
-                } else {
-                    $(element).fadeOut(200);
-                }
-            });
+        scope: {
+          isFocused: "=setFocus"
+        },
+        link: function (scope, element) {
+          scope.$watch("isFocused", function(val, oldval) {
+            if (val) element[0].focus();
+          });
         }
     };
-});
+})
 
-app.directive('slide', function() {
-    return {
-        restrict: 'A',
-	    link: function($scope, element, attrs) {
-            $scope.$watch(attrs.show, function(value) {
-                if (value) {
-                  $(element).slideDown();
-                } else {
-                  $(element).slideUp();
-                }
-            });
-        }
-    };
-});
-
-app.directive('validateAnswer', function() {
+.directive('validateAnswer', function() {
   return {
     require: 'ngModel',
     link: function (scope, elm, attrs, ctrl) {
@@ -384,9 +385,16 @@ app.directive('validateAnswer', function() {
           return viewValue;
         } else {
           ctrl.$setValidity('answer', false);
-          return 'Invalid UPC';
+          return viewValue;
         }
       });
     }
   };
 });
+
+function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}

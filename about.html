@@ -1,13 +1,16 @@
-<div slide-down show="show(views.about)" >
-  <div class="backdrop">
+<div class="fade-in">
+  <div class="center-modal">
     <div class="modal-content">
-      <h1>About</h1>
+      <h1>What is SpeedRead?</h1>
       <div class="paragraph">
-      <p>This is a tool for improving reading speed and comprehension. A string of characters will flash on the screen. Open your perception to these characters and enter what you see.  As your perception improves, the task will become more difficult.</p>
-      <p><strong>Take a deep breath, focus, and improve.</strong></p>
+      <p>As you read this you are probably pronouncing the words to yourself. This is called subvocalization and almost everyone does it. Some actually move their lips or say the words under their breath, while others simply say each word in their heads.</p>
+      <p>Regardless of how you subvocalize, it slows you down.</p>
+      <p>SpeedRead is a tool for improving reading speed by training you out of the habit of subvocalizing. A string of characters will flash on the screen. Your task is to remember what you see and enter it on screen. As your perception improves, the task will become more difficult.</p>
+      <p><strong>Take a breath, focus on the screen, and improve.</strong></p>
       </div>
       <button class="btn btn-large" ng-show="mode() < 0" ng-click="changeview(views.settings)" >Start</button>
-      <span class="close" ng-click="changeview(views.none)">&times</span>
+      <span class="close" ng-click="changeview(views.none)">&times;</span>
     </div>
   </div>
+  <div class="backdrop" ng-click="changeview(views.none)"></div>
 </div>

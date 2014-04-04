@@ -1,38 +1,32 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="speedreadapp" id="top">
+<html lang="en" ng-app="speedread">
 <head>
     <meta charset="utf-8">
-    <title>SpeedReader</title>
+    <title>SpeedRead</title>
     <meta name="description" content="Y-Hack Speed Reading App">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link href="favicon.gif" rel="shortcut icon" />
 
     <link href='//fonts.googleapis.com/css?family=Noto+Sans:700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/animations.css" />
 
-    <script src="js/jquery-1.10.2.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
-    <script src="js/angular-local-storage.js"></script>
-    <script src="js/ui-bootstrap-custom-0.6.0.min.js"></script>
-    <script src="js/app.js"></script>
 </head>
-<body ng-controller="MainCtrl">
-  <div ng-show="blanket" class="blanket"></div>
-  <div class="about"></div>
-  <div class="settings"></div>
-  <div class="prompt"></div>
-  <div class="score">
-    <div ng-cloak class="less" ng-click="togglescore()" slide show="display(scores.simple)">
-      <span>Streak: {{streak()}}</span>
-      <span class="glyphicon glyphicon-flash"></span>
-      <span>Level: {{level()}}</span>
-    </div>
-    <div ng-cloak class="more" ng-click="togglescore()" slide show="display(scores.more)">
-      <span>Length: {{length()}} </span>
-      <span class="glyphicon glyphicon-flash"></span>
-      <span>Time: {{time()}}ms </span>
-    </div>
+<body ng-cloak ng-controller="MainCtrl">
+  <div ng-cloak ng-show="show(views.about)" class="about"></div>
+  <div ng-cloak ng-show="show(views.settings)" class="settings"></div>
+  <div ng-cloak ng-show="show(views.confirm)" class="prompt"></div>
+  <div class="top">
+      <div class="score" ng-switch on="score">
+        <div ng-cloak ng-switch-when="simple" class="less slide" ng-click="togglescore()">
+          <span>Streak: {{streak()}} <span class="glyphicon glyphicon-flash"></span> Level: {{level()}}</span>
+        </div>
+        <div ng-cloak ng-switch-when="more" class="more slide" ng-click="togglescore()">
+          <span>Length: {{length()}} <span class="glyphicon glyphicon-flash"></span> Time: {{time()}}ms</span>
+        </div>
+      </div>
+    <progressbar value="progress()"></progressbar>
     <div class="menu">
       <a ng-click="changeview(views.settings)" class="glyphicon glyphicon-cog"></a>
       <a ng-click="changeview(views.about)">About</a>
@@ -45,9 +39,15 @@
 
     <div ng-show="show(views.input)" class="input">
       <form name="answerform" ng-submit="submit(answer)" >
-      <input class="{{checkanswer()}} textbox" type="text" name="answer" ng-model="answer" />
+      <input class="{{checkanswer()}} textbox" type="text" name="answer" ng-model="answer" set-focus="show(views.input)" />
       </form>
     </div>
   </div>
+  <script src="http://code.angularjs.org/1.2.16/angular.min.js"></script>
+  <script src="http://code.angularjs.org/1.2.16/angular-animate.min.js"></script>
+  <script src="js/angular-local-storage.js"></script>
+  <script src="js/ui-bootstrap-custom-tpls-0.10.0.min.js"></script>
+  <script src="js/words.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
