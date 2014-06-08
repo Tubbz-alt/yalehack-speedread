@@ -48,7 +48,7 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
 
     calculateTime: function() {
       time = mintime - (20 * level)  
-      if (time < 10) time = 10;
+      if (time < 20) time = 20;
     },
 
     increment: function(val) {
@@ -56,7 +56,6 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
       hiddenstreak += val;
     },
 
-    /* Let's not have the visible streak go below 0 */
     decrement: function(val) {
       hiddenstreak -= val;
     },
@@ -117,7 +116,7 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
   };
 })
 
-.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', function($scope, $timeout, user, local) {
+.controller('MainCtrl', ['$scope', '$timeout', 'userSrv', 'localStorageService', 'animate', function($scope, $timeout, user, local, animate) {
 
   $scope.chars = [
     '1234567890',
@@ -212,6 +211,7 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
   $scope.init = function() {
     $scope.loaddata();
     if (!$scope.hasdata())  {
+      $scope.firsttime = true;
       $scope.view = $scope.views.about;
       $scope.save('uuid', uuid());
       user.cleardata();
@@ -236,13 +236,17 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
   $scope.start = function(value) {
     $scope.view = $scope.views.none;
     user.setMode(value);
-    wait = $timeout(function() {
-      if ($scope.hasdata()) { 
-        $scope.flash($scope.generate(user.getlength(), user.getmode()), user.gettime());
-      } else {
-        $scope.flash($scope.generate(user.getlength(), user.getmode()), 500);
-      }
-    }, 2000);
+    // Wait for modal to fade out
+    $timeout(function() {
+        animate(function() {
+            // First turn easy, otherwise normal.
+            if ($scope.firsttime) { 
+              $scope.flash($scope.generate(), 500);
+            } else {
+              $scope.flash($scope.generate(), 100); // Weird error where text doesn't display if this goes below 60
+            }
+        });
+    }, 1000);
   };
 
   /* mode = 0, 1, 2, or 3 */
@@ -251,6 +255,7 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
     user.calculateLength();
     user.calculateTime();
     $scope.savedata();
+    var time = user.gettime();
     var randomstring = "";
     if (user.getmode() != 3) {
         for (var i = user.getlength(); i > 0; --i) 
@@ -258,21 +263,26 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
     } else {
         randomstring = $scope.words[user.getlength()][Math.round(Math.random() * ($scope.words[user.getlength()].length - 1))];
     }
-    return randomstring;
+    return {text: randomstring, duration: time};
   };
 
-  $scope.flash = function(whattext, howlong) {
-    wait = $timeout(function() { /* wait */ 
-      $scope.text = whattext;
-      $scope.view = $scope.views.text;
-    
-      /* Hide after howlong */
-      hide = $timeout(function() {
-        $scope.view = $scope.views.input;
-        $scope.$apply();
-      }, howlong);
-    }, 500);
+  $scope.flash = function(args, overrideduration) {
+      var duration = overrideduration? overrideduration : args.duration;
+      var text = args.text;
 
+      // Pause before flashing text
+      $timeout(function() {
+          animate(function() {
+              $scope.text = text;
+              $scope.view = $scope.views.text;
+          });
+          // Hide text
+          $timeout(function() {
+              animate(function() {
+                  $scope.view = $scope.views.input;
+              });
+          }, duration);
+      }, duration * 2);
   };
 
   $scope.checkanswer = function() {
@@ -282,32 +292,20 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
   $scope.submit = function(input) {
 
     if ($scope.text == angular.uppercase(input)) {
-      /*
-      if (!$scope.lastcorrect) { 
-        user.resetstreak();
-      }*/
-
       $scope.lastcorrect = true;
       user.increment(1);
       $scope.validation = "correct";
     } else {
-      /*
-      if ($scope.lastcorrect) {
-        user.resetstreak();
-      }*/
-
       $scope.lastcorrect = false;
       user.resetstreak();
       user.decrement(3);
       $scope.validation = "incorrect";
     }
 
-    wait = $timeout(function() {
-      $scope.view = $scope.views.none;
-      $scope.answer = "";
-      $scope.validation = "";
-      $scope.flash($scope.generate(user.getlength(), user.getmode()), user.gettime());
-    }, 500);
+    $scope.view = $scope.views.none;
+    $scope.answer = "";
+    $scope.validation = "";
+    $scope.flash($scope.generate());
   };
 
   $scope.reset = function() {
@@ -390,6 +388,19 @@ angular.module('speedread', ['ngAnimate', 'ui.bootstrap', 'LocalStorageModule'])
       });
     }
   };
+})
+
+.factory('animate', function($window, $rootScope) {
+  var requestAnimationFrame = $window.requestAnimationFrame ||
+       $window.mozRequestAnimationFrame ||
+       $window.msRequestAnimationFrame ||
+       $window.webkitRequestAnimationFrame;
+  
+   return function(tick) {
+       requestAnimationFrame(function() {
+           $rootScope.$apply(tick);
+       });
+   };
 });
 
 function uuid() {
